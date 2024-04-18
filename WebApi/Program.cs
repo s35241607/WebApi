@@ -1,15 +1,18 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Negotiate;
-using Microsoft.AspNetCore.Authorization;
+﻿using Elastic.Apm.NetCoreAll;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using System.Configuration;
 using System.Text;
-using WebApi.Filters;
 using WebApi.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 
 builder.Services.AddW3CLogging(logging =>
 {
@@ -26,7 +29,12 @@ builder.Services.AddW3CLogging(logging =>
 builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 {
     options.SuppressModelStateInvalidFilter = true; // 禁用默認的 ModelStateInvalidFilter
-}); ;
+}).AddJsonOptions(options =>
+{
+    //options.JsonSerializerOptions.Converters
+    //options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    //options.JsonSerializerOptions.DictionaryKeyPolicy = null;
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -42,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT",
         Description = "JWT Authorization header using the Bearer scheme."
     });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement 
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme{
@@ -58,6 +66,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddTransient<JwtHelpers>();
+builder.Services.AddTransient<FileHelper>();
 
 builder.Services.AddHealthChecks();
 
@@ -102,6 +111,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseAllElasticApm(builder.Configuration);
 app.UseW3CLogging();
 
 // Configure the HTTP request pipeline.
@@ -120,3 +130,4 @@ app.MapControllers();
 
 app.MapHealthChecks("/healthz");
 app.Run();
+
