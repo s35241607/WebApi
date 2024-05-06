@@ -26,6 +26,7 @@ namespace WebApi.Utilities
             // In RFC 7519 (Section#4), there are defined 7 built-in Claims, but we mostly use 2 of them.
             //claims.Add(new Claim(JwtRegisteredClaimNames.Iss, issuer));
             new Claim(JwtRegisteredClaimNames.Sub, userName), // User.Identity.Name
+            new Claim(JwtRegisteredClaimNames.NameId, "123"),
             //new Claim(JwtRegisteredClaimNames.Aud, "The Audience");
             //new Claim(JwtRegisteredClaimNames.Exp, DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeSeconds().ToString());
             //new Claim(JwtRegisteredClaimNames.Nbf, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()); // 必須為數字

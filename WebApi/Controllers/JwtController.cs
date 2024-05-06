@@ -6,14 +6,16 @@ using WebApi.Utilities;
 namespace WebApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class JwtController : ControllerBase
     {
-        private JwtHelpers _jwtHelpers;
+        private readonly JwtHelpers _jwtHelpers;
+        private readonly ILogger<JwtController> _logger;
 
-        public JwtController(JwtHelpers jwtHelpers)
+        public JwtController(JwtHelpers jwtHelpers, ILogger<JwtController> logger)
         {
             _jwtHelpers = jwtHelpers;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -21,6 +23,7 @@ namespace WebApi.Controllers
 
         public IActionResult GenerateToken(string username)
         {
+            _logger.LogInformation("user:" + username);
             var token = _jwtHelpers.GenerateToken(username);
             return Ok(token);
         }

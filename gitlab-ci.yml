@@ -1,0 +1,5 @@
+stages:
+    - testing
+    - build
+    - publish
+    - deploy_to_dev

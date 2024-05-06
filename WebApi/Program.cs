@@ -1,11 +1,14 @@
-﻿using Elastic.Apm.NetCoreAll;
+﻿using Elastic.Apm.Api;
+using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Configuration;
 using System.Text;
+using WebApi.Data;
 using WebApi.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +38,9 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
     //options.JsonSerializerOptions.PropertyNamingPolicy = null;
     //options.JsonSerializerOptions.DictionaryKeyPolicy = null;
 });
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+      options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnection")!));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -87,7 +93,6 @@ builder.Services
             // 一般我們都會驗證 Issuer
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration.GetValue<string>("JwtSettings:Issuer"),
-
             // 通常不太需要驗證 Audience
             ValidateAudience = false,
             //ValidAudience = "JwtAuthDemo", // 不驗證就不需要填寫
@@ -99,7 +104,7 @@ builder.Services
             ValidateIssuerSigningKey = true,
 
             // "1234567890123456" 應該從 IConfiguration 取得
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JwtSettings:SignKey"))),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JwtSettings:SignKey") ?? "")),
 
             //沒有設定的話預設為5分鐘，這會導致過期時間會再增加
             ClockSkew = TimeSpan.Zero
@@ -107,6 +112,7 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
 
 
 var app = builder.Build();
@@ -117,6 +123,7 @@ app.UseW3CLogging();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -125,6 +132,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+
+
 
 app.MapControllers();
 

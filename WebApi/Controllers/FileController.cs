@@ -24,6 +24,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [RequestSizeLimit(2 * 1024 * 1024)]
         public async Task<IActionResult> Post(IFormFile file)
         {
             var fileName = await _fileHelper.UploadFileAsync(file);
